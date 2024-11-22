@@ -139,7 +139,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
 
     @Override
     protected DBDDisplayFormat getValueExportFormat(DBDAttributeBinding column) {
-        if ((column.getDataKind() == DBPDataKind.NUMERIC && !formatNumbers) || (column.getDataKind() == DBPDataKind.ARRAY && !formatNumbers) ) {
+        if ((column.getDataKind() == DBPDataKind.NUMERIC && !formatNumbers) || (column.getDataKind() == DBPDataKind.ARRAY && !formatArray) ) {
             return DBDDisplayFormat.NATIVE;
         }
         if(column.getDataKind()==DBPDataKind.ARRAY && formatArray)
