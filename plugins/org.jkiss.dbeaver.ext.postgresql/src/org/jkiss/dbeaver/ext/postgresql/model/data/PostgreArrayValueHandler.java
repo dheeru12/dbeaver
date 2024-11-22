@@ -25,6 +25,7 @@ import org.jkiss.dbeaver.ext.postgresql.PostgreValueParser;
 import org.jkiss.dbeaver.ext.postgresql.model.PostgreDataSource;
 import org.jkiss.dbeaver.ext.postgresql.model.PostgreDataType;
 import org.jkiss.dbeaver.ext.postgresql.model.PostgreTypeType;
+import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.data.DBDCollection;
 import org.jkiss.dbeaver.model.data.DBDDisplayFormat;
@@ -133,9 +134,13 @@ public class PostgreArrayValueHandler extends JDBCArrayValueHandler {
     @NotNull
     @Override
     public String getValueDisplayString(@NotNull DBSTypedObject column, Object value, @NotNull DBDDisplayFormat format) {
-        if (!DBUtils.isNullValue(value) && value instanceof DBDCollection collection) {
-            final StringJoiner output = new StringJoiner(
-                PostgreUtils.getArrayDelimiter(collection.getComponentType()), "{", "}");
+        if (!DBUtils.isNullValue(value) && value instanceof DBDCollection) {
+            final DBDCollection collection = (DBDCollection) value;
+
+            String prefix = format.equals(DBDDisplayFormat.EXPORT)? "[": DBConstants.DEFAULT_ARRAY_PREFIX;
+            String suffix = format.equals(DBDDisplayFormat.EXPORT)? "]": DBConstants.DEFAULT_ARRAY_SUFFIX;
+
+            final StringJoiner output = new StringJoiner(PostgreUtils.getArrayDelimiter(collection.getComponentType()), prefix, suffix);
 
             for (int i = 0; i < collection.getItemCount(); i++) {
                 final Object item = collection.getItem(i);
@@ -154,7 +159,6 @@ public class PostgreArrayValueHandler extends JDBCArrayValueHandler {
 
             return output.toString();
         }
-
         return super.getValueDisplayString(column, value, format);
     }
 

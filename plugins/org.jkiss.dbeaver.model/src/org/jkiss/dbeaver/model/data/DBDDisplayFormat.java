@@ -24,7 +24,8 @@ import java.util.Locale;
 public enum DBDDisplayFormat {
     UI,     // To represent in UI
     EDIT,   // Format for editor
-    NATIVE  // SQL format
+    NATIVE,  // SQL format
+    EXPORT
     ;
 
     public static DBDDisplayFormat safeValueOf(String string) {
