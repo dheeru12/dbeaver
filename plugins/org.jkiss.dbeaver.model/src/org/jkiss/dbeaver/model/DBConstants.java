@@ -122,9 +122,6 @@ public class DBConstants {
 
     public static final String DEBUG_LOG_FILE_NAME = "dbeaver-debug.log";
 
-    public static final String DEFAULT_ARRAY_PREFIX = "{";
-    public static final String DEFAULT_ARRAY_SUFFIX = "}";
-
     /////////////////////////////////
     // Property categories and features
 

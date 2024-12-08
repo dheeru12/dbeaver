@@ -59,7 +59,6 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
     private static final String PROP_QUOTE_NEVER = "quoteNever";
     private static final String PROP_NULL_STRING = "nullString";
     private static final String PROP_FORMAT_NUMBERS = "formatNumbers";
-    private static final String PROP_FORMAT_ARRAY = "formatArray";
 
     private static final String DEF_QUOTE_CHAR = "\"";
     private boolean formatNumbers;
@@ -89,7 +88,6 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
     private HeaderFormat headerFormat;
     private DBPIdentifierCase headerCase;
     private DBDAttributeBinding[] columns;
-    private boolean formatArray = false;
 
     private final StringBuilder buffer = new StringBuilder();
 
@@ -128,7 +126,6 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             case "lower" -> DBPIdentifierCase.LOWER;
             default -> DBPIdentifierCase.UPPER;
         };
-        formatArray = CommonUtils.toBoolean(properties.get(PROP_FORMAT_ARRAY));
     }
 
     @Override
@@ -139,11 +136,9 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
 
     @Override
     protected DBDDisplayFormat getValueExportFormat(DBDAttributeBinding column) {
-        if ((column.getDataKind() == DBPDataKind.NUMERIC && !formatNumbers) || (column.getDataKind() == DBPDataKind.ARRAY && !formatNumbers) ) {
+        if ((column.getDataKind() == DBPDataKind.NUMERIC && !formatNumbers) || column.getDataKind() == DBPDataKind.ARRAY) {
             return DBDDisplayFormat.NATIVE;
         }
-        if(column.getDataKind()==DBPDataKind.ARRAY && formatArray)
-            return DBDDisplayFormat.EXPORT;
         return super.getValueExportFormat(column);
     }
 
