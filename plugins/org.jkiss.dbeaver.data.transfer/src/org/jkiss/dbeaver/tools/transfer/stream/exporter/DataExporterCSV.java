@@ -43,6 +43,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * CSV Exporter
@@ -59,6 +61,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
     private static final String PROP_QUOTE_NEVER = "quoteNever";
     private static final String PROP_NULL_STRING = "nullString";
     private static final String PROP_FORMAT_NUMBERS = "formatNumbers";
+    private static final String PROP_FORMAT_ARRAY = "formatArray";
 
     private static final String DEF_QUOTE_CHAR = "\"";
     private boolean formatNumbers;
@@ -88,6 +91,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
     private HeaderFormat headerFormat;
     private DBPIdentifierCase headerCase;
     private DBDAttributeBinding[] columns;
+    private DataExporterArrayFormat dataExporterArrayFormat;
 
     private final StringBuilder buffer = new StringBuilder();
 
@@ -126,6 +130,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             case "lower" -> DBPIdentifierCase.LOWER;
             default -> DBPIdentifierCase.UPPER;
         };
+        dataExporterArrayFormat = DataExporterArrayFormat.getArrayFormat(CommonUtils.toString(properties.get(PROP_FORMAT_ARRAY)));
     }
 
     @Override
@@ -136,7 +141,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
 
     @Override
     protected DBDDisplayFormat getValueExportFormat(DBDAttributeBinding column) {
-        if ((column.getDataKind() == DBPDataKind.NUMERIC && !formatNumbers) || column.getDataKind() == DBPDataKind.ARRAY) {
+        if (column.getDataKind() == DBPDataKind.NUMERIC && !formatNumbers) {
             return DBDDisplayFormat.NATIVE;
         }
         return super.getValueExportFormat(column);
@@ -215,6 +220,9 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             } else {
                 String stringValue = super.getValueDisplayString(column, row[i]);
                 boolean quote = false;
+                if(column.getDataKind()==DBPDataKind.ARRAY){
+                    stringValue = editArrayPrefixAndSuffix(dataExporterArrayFormat,stringValue);
+                }
 
                 if (quoteStrategy == QuoteStrategy.DISABLED) {
                     if (!stringValue.isEmpty() && !(row[i] instanceof Number) && !(row[i] instanceof Date) && Character.isDigit(stringValue.charAt(0))) {
@@ -247,6 +255,37 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             }
         }
         writeRowLimit();
+    }
+
+    /**
+     * prepares regex for Nested array
+     * Example:
+         * {{"sample1","sample2"},{"sample3","sample4"}}
+     * Input: prefix: '{' suffix '}'
+     * Output: String: "^\{\.*{+\}{2,}$"
+     * */
+    private String prepareNestedArrayRegex(Character prefix,Character suffix){
+        return "^\\"+prefix+"\\"+prefix+"+.*\\"+suffix+"{2,}$";
+    }
+
+    private String editArrayPrefixAndSuffix(DataExporterArrayFormat modifiedFormat,String stringValue) {
+        stringValue = stringValue.trim();
+
+        DataExporterArrayFormat currentArrayFormat = DataExporterArrayFormat.getArrayFormatOnPrefix(stringValue.charAt(0));
+        if(currentArrayFormat.equals(modifiedFormat)){
+            return stringValue;
+        }
+
+        Pattern pattern = Pattern.compile(prepareNestedArrayRegex(currentArrayFormat.getPrefix(),currentArrayFormat.getSuffix()));
+        Matcher matcher = pattern.matcher(stringValue);
+
+        if(matcher.find()){
+            stringValue = stringValue.replaceAll(currentArrayFormat.getPrefixRegex(),modifiedFormat.getPrefixRegex());
+            stringValue = stringValue.replaceAll(currentArrayFormat.getSuffixRegex(),modifiedFormat.getSuffixRegex());
+            return stringValue;
+        }
+
+        return  modifiedFormat.getPrefix() + stringValue.substring(1, stringValue.length() - 1) + modifiedFormat.getSuffix();
     }
 
     @Override
