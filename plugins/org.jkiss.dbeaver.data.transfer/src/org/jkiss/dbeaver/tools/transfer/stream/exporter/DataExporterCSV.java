@@ -257,17 +257,6 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
         writeRowLimit();
     }
 
-    /**
-     * prepares regex for Nested array
-     * Example:
-         * {{"sample1","sample2"},{"sample3","sample4"}}
-     * Input: prefix: '{' suffix '}'
-     * Output: String: "^\{\.*{+\}{2,}$"
-     * */
-    private String prepareNestedArrayRegex(Character prefix,Character suffix){
-        return "^\\"+prefix+"\\"+prefix+"+.*\\"+suffix+"{2,}$";
-    }
-
     private String editArrayPrefixAndSuffix(DataExporterArrayFormat modifiedFormat,String stringValue) {
         stringValue = stringValue.trim();
 
@@ -276,16 +265,24 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             return stringValue;
         }
 
-        Pattern pattern = Pattern.compile(prepareNestedArrayRegex(currentArrayFormat.getPrefix(),currentArrayFormat.getSuffix()));
-        Matcher matcher = pattern.matcher(stringValue);
-
-        if(matcher.find()){
-            stringValue = stringValue.replaceAll(currentArrayFormat.getPrefixRegex(),modifiedFormat.getPrefixRegex());
-            stringValue = stringValue.replaceAll(currentArrayFormat.getSuffixRegex(),modifiedFormat.getSuffixRegex());
-            return stringValue;
+        boolean insideQuotes = false;
+        StringBuilder modifiedBuilder = new StringBuilder();
+        for (char c : stringValue.toCharArray()) {
+            if (c == '"') {
+                insideQuotes = !insideQuotes;
+            }
+            if (!insideQuotes) {
+                if (c == currentArrayFormat.getPrefix()) {
+                    modifiedBuilder.append(modifiedFormat.getPrefix());
+                    continue;
+                } else if (c == currentArrayFormat.getSuffix()) {
+                    modifiedBuilder.append(modifiedFormat.getSuffix());
+                    continue;
+                }
+            }
+            modifiedBuilder.append(c);
         }
-
-        return  modifiedFormat.getPrefix() + stringValue.substring(1, stringValue.length() - 1) + modifiedFormat.getSuffix();
+        return modifiedBuilder.toString();
     }
 
     @Override

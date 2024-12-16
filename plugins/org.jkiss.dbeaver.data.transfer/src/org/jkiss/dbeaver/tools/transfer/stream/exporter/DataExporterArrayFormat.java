@@ -17,20 +17,16 @@
 package org.jkiss.dbeaver.tools.transfer.stream.exporter;
 
 public enum DataExporterArrayFormat {
-    SQUARE_BRACKETS('[',']',"\\[","\\]"),
-    CURLY_BRACKETS('{','}',"\\{","\\}"),
-    BRACKETS('(',')',"\\(","\\)");
+    SQUARE_BRACKETS('[',']'),
+    CURLY_BRACKETS('{','}'),
+    BRACKETS('(',')');
 
     private char prefix;
     private char suffix;
-    private String prefixRegex;
-    private String suffixRegex;
 
-    DataExporterArrayFormat(char prefix,char suffix,String prefixRegex,String suffixRegex) {
+    DataExporterArrayFormat(char prefix,char suffix) {
         this.prefix = prefix;
         this.suffix = suffix;
-        this.prefixRegex = prefixRegex;
-        this.suffixRegex = suffixRegex;
     }
 
     public static DataExporterArrayFormat getArrayFormat(String bracketPair){
@@ -50,14 +46,6 @@ public enum DataExporterArrayFormat {
             }
         }
         throw new IllegalStateException("No suitable DataExporterArrayFormat found");
-    }
-
-    public String getPrefixRegex() {
-        return prefixRegex;
-    }
-
-    public String getSuffixRegex() {
-        return suffixRegex;
     }
 
     public char getPrefix() {
