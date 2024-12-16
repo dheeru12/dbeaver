@@ -17,31 +17,31 @@
 package org.jkiss.dbeaver.tools.transfer.stream.exporter;
 
 public enum DataExporterArrayFormat {
-    SQUARE_BRACKETS('[',']'),
-    CURLY_BRACKETS('{','}'),
-    BRACKETS('(',')');
+    SQUARE_BRACKETS('[', ']'),
+    CURLY_BRACKETS('{', '}'),
+    BRACKETS('(', ')');
 
     private char prefix;
     private char suffix;
 
-    DataExporterArrayFormat(char prefix,char suffix) {
+    DataExporterArrayFormat(char prefix, char suffix) {
         this.prefix = prefix;
         this.suffix = suffix;
     }
 
-    public static DataExporterArrayFormat getArrayFormat(String bracketPair){
-        for(DataExporterArrayFormat df : DataExporterArrayFormat.values()){
-            bracketPair  = bracketPair.trim();
-            if(bracketPair.charAt(0)==df.prefix && bracketPair.charAt(bracketPair.length()-1)==df.suffix){
+    public static DataExporterArrayFormat getArrayFormat(String bracketPair) {
+        for (DataExporterArrayFormat df : DataExporterArrayFormat.values()) {
+            bracketPair = bracketPair.trim();
+            if (bracketPair.charAt(0) == df.prefix && bracketPair.charAt(bracketPair.length() - 1) == df.suffix) {
                 return df;
             }
         }
         throw new IllegalStateException("No suitable DataExporterArrayFormat found");
     }
 
-    public static DataExporterArrayFormat getArrayFormatOnPrefix(char prefix){
-        for(DataExporterArrayFormat df : DataExporterArrayFormat.values()){
-            if(prefix==df.prefix){
+    public static DataExporterArrayFormat getArrayFormatOnPrefix(char prefix) {
+        for (DataExporterArrayFormat df : DataExporterArrayFormat.values()) {
+            if (prefix == df.prefix) {
                 return df;
             }
         }

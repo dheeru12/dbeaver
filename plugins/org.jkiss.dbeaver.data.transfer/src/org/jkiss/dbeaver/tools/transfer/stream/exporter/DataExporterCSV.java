@@ -220,8 +220,8 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             } else {
                 String stringValue = super.getValueDisplayString(column, row[i]);
                 boolean quote = false;
-                if(column.getDataKind()==DBPDataKind.ARRAY){
-                    stringValue = editArrayPrefixAndSuffix(dataExporterArrayFormat,stringValue);
+                if (column.getDataKind() == DBPDataKind.ARRAY) {
+                    stringValue = editArrayPrefixAndSuffix(dataExporterArrayFormat, stringValue);
                 }
 
                 if (quoteStrategy == QuoteStrategy.DISABLED) {
@@ -257,11 +257,11 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
         writeRowLimit();
     }
 
-    private String editArrayPrefixAndSuffix(DataExporterArrayFormat modifiedFormat,String stringValue) {
+    private String editArrayPrefixAndSuffix(DataExporterArrayFormat modifiedFormat, String stringValue) {
         stringValue = stringValue.trim();
 
         DataExporterArrayFormat currentArrayFormat = DataExporterArrayFormat.getArrayFormatOnPrefix(stringValue.charAt(0));
-        if(currentArrayFormat.equals(modifiedFormat)){
+        if (currentArrayFormat.equals(modifiedFormat)) {
             return stringValue;
         }
 
