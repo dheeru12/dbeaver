@@ -43,6 +43,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * CSV Exporter
@@ -60,6 +62,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
     private static final String PROP_NULL_STRING = "nullString";
     private static final String PROP_FORMAT_NUMBERS = "formatNumbers";
     private static final String PROP_LINE_FEED_ESCAPE_STRING = "lineFeedEscapeString";
+    private static final String PROP_FORMAT_ARRAY = "formatArray";
 
     private static final String DEF_QUOTE_CHAR = "\"";
     private boolean formatNumbers;
@@ -90,6 +93,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
     private DBPIdentifierCase headerCase;
     private String lineFeedEscapeString;
     private DBDAttributeBinding[] columns;
+    private DataExporterArrayFormat dataExporterArrayFormat;
 
     private final StringBuilder buffer = new StringBuilder();
 
@@ -129,6 +133,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             case "lower" -> DBPIdentifierCase.LOWER;
             default -> DBPIdentifierCase.UPPER;
         };
+        dataExporterArrayFormat = DataExporterArrayFormat.getArrayFormat(CommonUtils.toString(properties.get(PROP_FORMAT_ARRAY)));
     }
 
     @Override
@@ -218,6 +223,9 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             } else {
                 String stringValue = super.getValueDisplayString(column, row[i]);
                 boolean quote = false;
+                if (column.getDataKind() == DBPDataKind.ARRAY) {
+                    stringValue = editArrayPrefixAndSuffix(dataExporterArrayFormat, stringValue);
+                }
 
                 if (quoteStrategy == QuoteStrategy.DISABLED) {
                     if (!stringValue.isEmpty() && !(row[i] instanceof Number) && !(row[i] instanceof Date) && Character.isDigit(stringValue.charAt(0))) {
@@ -250,6 +258,34 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
             }
         }
         writeRowLimit();
+    }
+
+    private String editArrayPrefixAndSuffix(DataExporterArrayFormat modifiedFormat, String stringValue) {
+        stringValue = stringValue.trim();
+
+        DataExporterArrayFormat currentArrayFormat = DataExporterArrayFormat.getArrayFormatOnPrefix(stringValue.charAt(0));
+        if (currentArrayFormat.equals(modifiedFormat)) {
+            return stringValue;
+        }
+
+        boolean insideQuotes = false;
+        StringBuilder modifiedBuilder = new StringBuilder();
+        for (char c : stringValue.toCharArray()) {
+            if (c == '"') {
+                insideQuotes = !insideQuotes;
+            }
+            if (!insideQuotes) {
+                if (c == currentArrayFormat.getPrefix()) {
+                    modifiedBuilder.append(modifiedFormat.getPrefix());
+                    continue;
+                } else if (c == currentArrayFormat.getSuffix()) {
+                    modifiedBuilder.append(modifiedFormat.getSuffix());
+                    continue;
+                }
+            }
+            modifiedBuilder.append(c);
+        }
+        return modifiedBuilder.toString();
     }
 
     @Override
