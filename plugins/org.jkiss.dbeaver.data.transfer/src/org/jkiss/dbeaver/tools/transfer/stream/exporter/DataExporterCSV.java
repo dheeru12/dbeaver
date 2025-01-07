@@ -63,6 +63,7 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
     private static final String PROP_FORMAT_NUMBERS = "formatNumbers";
     private static final String PROP_LINE_FEED_ESCAPE_STRING = "lineFeedEscapeString";
     private static final String PROP_FORMAT_ARRAY = "formatArray";
+    private static final Pattern LINE_BREAK_REGEX = Pattern.compile("\\r\\n|\\n");
 
     private static final String DEF_QUOTE_CHAR = "\"";
     private boolean formatNumbers;
@@ -104,10 +105,13 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
         Map<String, Object> properties = site.getProperties();
         this.delimiter = StreamTransferUtils.getDelimiterString(properties, PROP_DELIMITER);
         this.rowDelimiter = StreamTransferUtils.getDelimiterString(properties, PROP_ROW_DELIMITER);
-        this.lineFeedEscapeString = StreamTransferUtils.getDelimiterString(properties, PROP_LINE_FEED_ESCAPE_STRING);
         if (ROW_DELIMITER_DEFAULT.equalsIgnoreCase(this.rowDelimiter.trim())) {
             this.rowDelimiter = GeneralUtils.getDefaultLineSeparator();
         }
+        this.lineFeedEscapeString = CommonUtils.toString(properties.get(PROP_LINE_FEED_ESCAPE_STRING), "")
+            .replace("\\t", "\t")
+            .replace("\\n", "\n")
+            .replace("\\r", "\r");
         Object quoteProp = properties.get(PROP_QUOTE_CHAR);
         String quoteStr = quoteProp == null ? DEF_QUOTE_CHAR : quoteProp.toString();
         if (!CommonUtils.isEmpty(quoteStr)) {
@@ -319,7 +323,9 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
         final boolean hasQuotes = useQuotes && value.indexOf(quoteChar) != -1;
 
         if (CommonUtils.isNotEmpty(lineFeedEscapeString)) {
-            value = value.replaceAll("\\r\\n|\\r|\\n", lineFeedEscapeString);
+            if (value.indexOf('\n') != -1) {
+                value = LINE_BREAK_REGEX.matcher(value).replaceAll(lineFeedEscapeString);
+            }
         }
 
         if (quoteStrategy == QuoteStrategy.ALL || (useQuotes && value.isEmpty())) {
