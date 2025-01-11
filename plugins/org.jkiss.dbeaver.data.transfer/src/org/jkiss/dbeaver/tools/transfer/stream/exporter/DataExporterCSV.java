@@ -265,6 +265,10 @@ public class DataExporterCSV extends StreamExporterAbstract implements IAppendab
     }
 
     private String editArrayPrefixAndSuffix(DataExporterArrayFormat modifiedFormat, String stringValue) {
+        if (stringValue == null || stringValue.isEmpty()) {
+            return stringValue;
+        }
+
         stringValue = stringValue.trim();
 
         DataExporterArrayFormat currentArrayFormat = DataExporterArrayFormat.getArrayFormatOnPrefix(stringValue.charAt(0));

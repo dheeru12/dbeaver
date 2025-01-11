@@ -45,7 +45,7 @@ public enum DataExporterArrayFormat {
                 return df;
             }
         }
-        throw new IllegalStateException("No suitable DataExporterArrayFormat found");
+        return CURLY_BRACKETS;
     }
 
     public char getPrefix() {
